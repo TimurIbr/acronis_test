@@ -12,7 +12,7 @@ func TestAddGoschedSimpleFile(t *testing.T) {
 	src := `
 package main
 import (
-	"runtime"
+"runtime"
 )
 func main() {
 	for i := 1; i < 10; i+=1 {
@@ -314,6 +314,43 @@ func main() {
 	require.True(t, required_answer == answer)
 }
 
+/*The test of adding runtime import*/
+func TestAddGoschedRuntimeInsert(t *testing.T) {
+	// t.Skip()
+	t.Parallel()
+	src := `
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	for i := 1; i < 10; i+=1 {
+		fmt.Print("Hello, World!") 
+	}
+}
+`
+	required_answer := `package main
+
+import "runtime"
+
+import (
+	"fmt"
+)
+
+func main() {
+	for i := 1; i < 10; i += 1 {
+		fmt.Print("Hello, World!")
+		runtime.Gosched()
+	}
+}
+`
+	answer := AddGoshed.AddGoschedToFile("SimpleFile", src)
+	print(answer)
+	require.True(t, required_answer == answer)
+}
+
 /*The test of for-loop in multi tread programm*/
 func TestAddGoschedComplex2File(t *testing.T) {
 	// t.Skip()
@@ -323,7 +360,6 @@ package main
 
 import "fmt"
 import "time"
-import "runtime"
 
 func main() {
     
@@ -361,12 +397,12 @@ func main() {
 	
 	fmt.Println("Total:", <-ch2, <-ch2)
 }`
-
 	required_answer := `package main
+
+import "runtime"
 
 import "fmt"
 import "time"
-import "runtime"
 
 func main() {
 
@@ -409,5 +445,6 @@ func main() {
 }
 `
 	answer := AddGoshed.AddGoschedToFile("SimpleFile", src)
+	//print(answer)
 	require.True(t, required_answer == answer)
 }

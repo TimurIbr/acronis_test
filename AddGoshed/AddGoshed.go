@@ -48,6 +48,25 @@ func (w *Walker1)Visit(n ast.Node) ast.Visitor{
 	return w
 }
 
+func AddImportRuntime(fset *token.FileSet, f *ast.File){
+	//f.Imports = append(f.Imports , &ast.ImportSpec{Path:&ast.BasicLit{Kind:token.STRING, Value:"\"runtime\""}})
+	hasRuntime := false
+	for _, impr := range f.Imports{
+		if impr.Path.Value == "\"runtime\""{
+			hasRuntime = true
+		}
+	}
+	if !hasRuntime{
+		importRuntime := &ast.GenDecl{
+			TokPos: f.Package,
+			Tok:    token.IMPORT,
+			Specs:  []ast.Spec{&ast.ImportSpec{Path: &ast.BasicLit{Kind: token.STRING, Value: "\"runtime\""}}},
+		}
+		f.Decls = append([]ast.Decl{importRuntime}, f.Decls...)
+		ast.SortImports(fset,f)
+	}
+}
+
 func AddGoschedToFile(fileName string, src string) string{
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, fileName, src, 0)
@@ -55,8 +74,7 @@ func AddGoschedToFile(fileName string, src string) string{
 		fmt.Print(fmt.Errorf("unable to parse file %v: %v", fileName, err))
 		panic(err)
 	}
-	f.Imports = append(f.Imports, &ast.ImportSpec{Path:&ast.BasicLit{Kind:token.STRING, Value:"runtime"}})
-	ast.SortImports(fset,f)
+	AddImportRuntime(fset, f)
 	w := Walker1{}
 	ast.Walk(&w, f)
 	var programm bytes.Buffer
